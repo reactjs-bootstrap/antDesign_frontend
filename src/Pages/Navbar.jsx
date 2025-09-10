@@ -1,84 +1,75 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import {
-  HomeOutlined,
-  AppstoreOutlined,
-  PlusCircleOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  UserAddOutlined,
-  LoginOutlined,
-  UserOutlined,
-  LogoutOutlined,
-} from "@ant-design/icons";
-import { Menu } from "antd";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Layout, Menu } from "antd";
+
+const { Header } = Layout;
 
 const Navbar = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const [current, setCurrent] = useState(location.pathname);
 
-  const token = localStorage.getItem("authToken");
+  // Check token on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+  }, []);
 
-  const onClick = (e) => {
-    if (e.key === "logout") {
-      localStorage.removeItem("authToken");
-      setCurrent("/login");
-      navigate("/login");
-      return;
-    }
-    setCurrent(e.key);
-    navigate(e.key);
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // remove token
+    setIsAuthenticated(false);
+    navigate("/login"); // redirect to login
   };
 
-  const items = [
-    { label: "Home", key: "/", icon: <HomeOutlined />, hidden: !token },
-    { label: "List", key: "/list", icon: <AppstoreOutlined /> },
-    {
-      label: "Create",
-      key: "/create",
-      icon: <PlusCircleOutlined />,
-      hidden: !token,
-    },
-    { label: "Update", key: "/update", icon: <EditOutlined />, hidden: !token },
-    {
-      label: "Delete",
-      key: "/delete",
-      icon: <DeleteOutlined />,
-      hidden: !token,
-    },
-    {
-      label: "Profile",
-      key: "/profile",
-      icon: <UserOutlined />,
-      hidden: !token,
-    },
-    {
-      label: "Register",
-      key: "/register",
-      icon: <UserAddOutlined />,
-      hidden: token,
-    },
-    { label: "Login", key: "/login", icon: <LoginOutlined />, hidden: token },
-    {
-      label: "Logout",
-      key: "logout",
-      icon: <LogoutOutlined />,
-      hidden: !token,
-    },
-  ];
-
-  const visibleItems = items.filter((item) => !item.hidden);
-
   return (
-    <Menu
-      onClick={onClick}
-      selectedKeys={[current]}
-      mode="horizontal"
-      theme="light"
-      items={visibleItems}
-      style={{ borderBottom: "1px solid #ddd" }}
-    />
+    <Header style={{ display: "flex", alignItems: "center" }}>
+      {/* Logo / Title */}
+      <div
+        className="logo"
+        style={{ color: "white", fontWeight: "bold", marginRight: "30px" }}
+      >
+        Hospital System
+      </div>
+
+      {/* Main Navigation */}
+      <Menu theme="dark" mode="horizontal" style={{ flex: 1 }}>
+        <Menu.Item key="home">
+          <Link to="/">Home</Link>
+        </Menu.Item>
+        <Menu.Item key="profile">
+          <Link to="/profile">Profile</Link>
+        </Menu.Item>
+        <Menu.SubMenu key="patients" title="Patients">
+          <Menu.Item key="patients-list">
+            <Link to="/patients/list">List</Link>
+          </Menu.Item>
+          <Menu.Item key="patients-create">
+            <Link to="/patients/create">Create</Link>
+          </Menu.Item>
+        </Menu.SubMenu>
+      </Menu>
+
+      {/* Auth Links */}
+      <div style={{ marginLeft: "auto" }}>
+        {!isAuthenticated ? (
+          <>
+            <Link to="/login" style={{ color: "white", marginRight: "15px" }}>
+              Login
+            </Link>
+            <Link to="/register" style={{ color: "white" }}>
+              Register
+            </Link>
+          </>
+        ) : (
+          <span
+            onClick={handleLogout}
+            style={{ color: "white", cursor: "pointer" }}
+          >
+            Logout
+          </span>
+        )}
+      </div>
+    </Header>
   );
 };
 
